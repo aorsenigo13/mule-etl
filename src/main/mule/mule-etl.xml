@@ -8,7 +8,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
 http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd">
-	<flow name="importFlow" doc:id="18136e9d-2fd8-4487-8343-a7f78b0ae3d4" >
+	<flow name="importFlow" doc:id="18136e9d-2fd8-4487-8343-a7f78b0ae3d4" initialState="stopped">
 		<file:listener doc:name="import-csv" doc:id="46098786-5917-44ea-9f76-3f0978f43106" config-ref="File_Config_TestFolder" directory="C:\test\incoming" moveToDirectory="C:\test\processed">
 			<scheduling-strategy >
 				<fixed-frequency frequency="3000" />
@@ -179,5 +179,47 @@ output application/json
 				</ee:transform>
 			</on-error-propagate>
 		</error-handler>
+	</flow>
+	<flow name="parallel_importFlow" doc:id="79a3f57e-6239-45ea-ae2e-4e8731dc7bde" initialState="started" >
+		<file:listener doc:name="impot-csv" doc:id="27c19bae-0140-4a13-985b-283d181d9d17" config-ref="File_Config_TestFolder" directory="C:\test\incoming" moveToDirectory="C:\test\processed">
+			<scheduling-strategy >
+				<fixed-frequency frequency="3000" />
+			</scheduling-strategy>
+			<file:matcher filenamePattern="*.csv" />
+		</file:listener>
+		<logger level="INFO" doc:name="Logger" doc:id="aa11eca8-36d8-4592-a411-11b32b16ed04" message="#[payload]" />
+		<ee:transform doc:name="Transform Message" doc:id="17ac8cb8-698e-404f-8c42-bce80ca8b371" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<parallel-foreach doc:name="Parallel For Each" doc:id="66e5c7be-b80d-470e-9dd4-0b08ba17a896" >
+			<ee:transform doc:name="Transform Message" doc:id="1f67c48e-0084-4212-b822-c7c1d5e1a83c">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+import * from dw::core::Strings
+output application/csv
+
+---
+{
+	id: payload.id,
+	nominativo: capitalize(payload.nomedefault "") ++' '++ capitalize(payload.cognome),
+	occupazione: payload.categoria,
+	livello: payload.livello,
+	cap: payload.cap,
+	residenza: upper(payload.citta)
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<logger level="INFO" doc:name="Logger" doc:id="1dd35b25-5bae-403b-94ee-7f1f535dac80" message="#[payload.nominativo]" />
+			<db:bulk-insert doc:name="Bulk insert" doc:id="3830b8b7-ce68-4773-b163-ecc3d82e948f" config-ref="Database_Config_Derby">
+				<db:sql><![CDATA[INSERT INTO DIPENDENTI(id, nominativo, occupazione, livello, cap, residenza) 
+VALUES (:id, :nominativo, :occupazione, :livello, :cap, :residenza)]]></db:sql>
+			</db:bulk-insert>
+		</parallel-foreach>
+		
 	</flow>
 </mule>
