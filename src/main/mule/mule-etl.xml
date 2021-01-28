@@ -8,7 +8,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
 	<flow name="importFlow" doc:id="18136e9d-2fd8-4487-8343-a7f78b0ae3d4" >
-		<file:listener doc:name="import.csv" doc:id="46098786-5917-44ea-9f76-3f0978f43106" config-ref="File_Config_TestFolder" directory="C:\test\incoming" moveToDirectory="C:\test\processed">
+		<file:listener doc:name="import-csv" doc:id="46098786-5917-44ea-9f76-3f0978f43106" config-ref="File_Config_TestFolder" directory="C:\test\incoming" moveToDirectory="C:\test\processed">
 			<scheduling-strategy >
 				<fixed-frequency frequency="3000" />
 			</scheduling-strategy>
