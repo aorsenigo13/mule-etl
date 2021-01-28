@@ -1,0 +1,21 @@
+id,nome,cognome,categoria,livello,compenso,cap,citta
+1,mario,rossi,impiegato,2,35000,20100,Milano
+2,marco,verdi,avvocato,4,50000,22060,Carimate
+11,mario,bianchi,impiegato,1,35000,20100,Milano
+22,marco, giallo,avvocato,4,80000,00195,Roma
+13,mario,viola,impiegato,1,35000,20100,Milano
+24,marco, marrone,avvocato,4,80000,00195,Roma
+15,mario,nero,impiegato,1,35000,20100,Milano
+26,marco, arancione,avvocato,4,80000,00195,Roma
+17,mario,rosso,impiegato,1,35000,20100,Milano
+28,marco, verri,avvocato,4,80000,00195,Roma
+19,mario,rosi,impiegato,1,35000,20100,Milano
+20,marco, erdi,avvocato,4,80000,00195,Roma
+12,mario,osi,impiegato,1,35000,20100,Milano
+23,marco, teri,avvocato,4,80000,00195,Roma
+14,mario,rsi,impiegato,1,35000,20100,Milano
+25,marco, vedi,avvocato,4,80000,00195,Roma
+167,mario,ossi,impiegato,1,35000,20100,Milano
+27,marco, vieri,avvocato,4,80000,00195,Roma
+18,mario,rosti,impiegato,1,35000,20100,Milano
+29,marco, velli,avvocato,4,80000,00195,Roma
