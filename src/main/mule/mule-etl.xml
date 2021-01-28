@@ -28,9 +28,11 @@ payload]]></ee:set-payload>
 				<ee:message >
 					<ee:set-payload ><![CDATA[%dw 2.0
 import * from dw::core::Strings
-output application/java
+output application/csv
+
 ---
 payload map ( payload01 , indexOfPayload01 ) -> {
+	id: payload01.id,
 	nominativo: capitalize(payload01.nomedefault "") ++' '++ capitalize(payload01.cognome),
 	occupazione: payload01.categoria,
 	livello: payload01.livello,
@@ -41,10 +43,18 @@ payload map ( payload01 , indexOfPayload01 ) -> {
 			</ee:transform>
 			<logger level="INFO" doc:name="Logger" doc:id="6ae475ff-fa2e-4ae3-b03d-c676c495bdc0" message="#[payload.nominativo]" />
 			<db:bulk-insert doc:name="Bulk insert" doc:id="e8d6cd4d-429d-4829-9ec8-bacbc541a4c5" config-ref="Database_Config_Derby">
-				<db:sql ><![CDATA[INSERT INTO DIPENDENTI(nominativo, occupazione, livello, cap, residenza) 
-VALUES (:nominativo, :occupazione, :livello, :cap, :residenza)]]></db:sql>
+				<db:sql ><![CDATA[INSERT INTO DIPENDENTI(id, nominativo, occupazione, livello, cap, residenza) 
+VALUES (:id, :nominativo, :occupazione, :livello, :cap, :residenza)]]></db:sql>
 			</db:bulk-insert>
 		</foreach>
+	</flow>
+	<flow name="syncDBFlow" doc:id="1be8b65d-71ca-465e-8946-919dbb20ff0f" initialState="stopped">
+		<db:listener doc:name="On Table Row DIPENDENTI" doc:id="3b41bd1b-7485-480b-948b-a18b97ab4647" config-ref="Database_Config_Derby" watermarkColumn="ID" idColumn="ID" table="DIPENDENTI">
+			<scheduling-strategy >
+				<fixed-frequency />
+			</scheduling-strategy>
+		</db:listener>
+		<logger level="INFO" doc:name="Logger" doc:id="bc830f1d-f333-4393-b3f4-9e320449e31f" message="#[payload]"/>
 	</flow>
 	<flow name="createFlow" doc:id="399ff748-79d9-4959-8d40-c4353c051576" >
 		<http:listener doc:name="GET /create" doc:id="c1f6ad9a-ba5f-4fe6-b7eb-df0096457f28" config-ref="HTTP_Listener_config" path="/create" allowedMethods="GET">
@@ -54,6 +64,7 @@ VALUES (:nominativo, :occupazione, :livello, :cap, :residenza)]]></db:sql>
 		</http:listener>
 		<db:execute-ddl doc:name="Execute DDL" doc:id="e9a1bfaf-c48f-4896-8365-964e6506e5a4" config-ref="Database_Config_Derby">
 			<db:sql ><![CDATA[CREATE TABLE DIPENDENTI (
+	id VARCHAR(100),
     nominativo VARCHAR(100),
     occupazione VARCHAR(100),
     livello VARCHAR(100),
@@ -62,6 +73,14 @@ VALUES (:nominativo, :occupazione, :livello, :cap, :residenza)]]></db:sql>
 )]]></db:sql>
 		</db:execute-ddl>
 		<logger level="INFO" doc:name="Logger" doc:id="b7654fa9-66df-4d79-93da-963513973357" />
+		<ee:transform doc:name="Transform Message" doc:id="4e4c3dc5-a567-4188-a2fd-286c58c7010e" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
 		<error-handler >
 			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="eab2288e-3fe3-4b3b-b9c2-60588c486f1e" >
 				<ee:transform doc:name="Transform Message" doc:id="8aa72071-a514-471d-819a-0e9d9fcad97e" >
@@ -71,6 +90,30 @@ output application/java
 ---
 {
 	"message": "Si è verificato un errore nella creazione della tabella " ++ error.description as String
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+	<flow name="deletDipendenti" doc:id="b172ee80-686a-4c1d-a7cd-f80aaea84d6c" >
+		<http:listener doc:name="Listener" doc:id="0813cd62-416b-436c-98d6-b16698106f8a" config-ref="HTTP_Listener_config" path="/dipendenti" allowedMethods="DELETE"/>
+		<db:delete doc:name="Delete" doc:id="b4c1fb95-67be-4867-8eca-0e3ff3c34658" config-ref="Database_Config_Derby">
+			<db:sql ><![CDATA[DELETE FROM DIPENDENTI]]></db:sql>
+		</db:delete>
+		<db:execute-ddl doc:name="Drop Table" doc:id="c085e9f0-f4af-42b1-b56e-43f89cd94381" config-ref="Database_Config_Derby">
+			<db:sql ><![CDATA[DROP TABLE DIPENDENTI]]></db:sql>
+		</db:execute-ddl>
+		<flow-ref doc:name="createFlow" doc:id="f5b5517a-7c69-480e-bcc4-111cba304947" name="createFlow"/>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="6a552da6-afc7-4ece-8fae-d23eae0a9e75" >
+				<ee:transform doc:name="Transform Message" doc:id="2e9e538a-b036-4b35-b3c3-21a885ed1f59" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message": "Errore nella pulizia della tabella dipendendenti: " ++ error.description as String
 }]]></ee:set-payload>
 					</ee:message>
 				</ee:transform>
