@@ -29,6 +29,22 @@ type derby_export = Array<{|  id: String,   nominativo: String,   occupazione: S
         <types:property name="isQuotedString" value="false"/>
       </types:properties>
     </types:type>
+    <types:type name="single-import" format="json">
+      <types:shape format="weave" example="single-import-example.json"><![CDATA[%dw 2.0
+
+type single_import = {|
+  id: Number {"typeId": "int"}, 
+  nome: String, 
+  cognome: String, 
+  categoria: String, 
+  livello: Number {"typeId": "int"}, 
+  compenso: Number {"typeId": "int"}, 
+  cap: Number {"typeId": "int"}, 
+  citta: String
+|} {"example": "{\\\"id\\\":333,\\\"nome\\\":\\\"Mario\\\",\\\"cognome\\\":\\\"Rossi\\\",\\\"categoria\\\":\\\"avvocato\\\",\\\"livello\\\":3,\\\"compenso\\\":34000,\\\"cap\\\":22060,\\\"citta\\\":\\\"como\\\"}"}
+
+]]></types:shape>
+    </types:type>
   </types:catalog>
   <types:enrichment select="#55a77203-5099-403e-9042-25ebf0192ace">
     <types:processor-declaration>
